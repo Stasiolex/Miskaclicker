@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Miśka clicker</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+    .Miśka {
+      display: flex;
+      justify-content: center;
+      margin-top: 5%;
+    }
+    .Milka {
+      width: 900px;
+      cursor: pointer;
+    }
+    .wynik-display {
+      text-align: center;
+      font-size: 50px;
+      font-weight: bold;
+      color: white;
+      flex-grow: 1;
+      margin-right: -350px;
+    }
+    .dawidki-per-second {
+      text-align: right;
+      font-size: 16px;
+      color: white;
+      margin-top: 5px;
+      margin-right: 350px;
+    }
+    header {
+      background-color: black;
+      width: 100%;
+      height: 150px;
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-direction: row;
+      padding: 0 20px;
+    }
+    .menu {
+      position: fixed;
+      right: -250px;
+      top: 0;
+      width: 250px;
+      height: 100%;
+      background-color: #333;
+      color: white;
+      transition: right 0.3s;
+      padding: 20px;
+      z-index: 1;
+    }
+    .menu.open {
+      right: 0;
+    }
+    .menu-button {
+      position: relative;
+      background-color: #444;
+      color: white;
+      padding: 10px;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      z-index: 2;
+      margin-bottom: 10px;
+    }
+    .upgrade {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #444;
+      cursor: pointer;
+    }
+    .reset-button {
+      background-color: red;
+      color: white;
+      padding: 10px;
+      cursor: pointer;
+      border: none;
+      font-size: 16px;
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body style="background-image: url(pokoik.jpg); background-position: top; background-size: cover;">
+  <header>
+    <button class="reset-button" onclick="resetGame()">Resetuj</button>
+    <div class="wynik-display" id="wynikDisplay">Dawidki: 0</div>
+    <div class="dawidki-per-second" id="dawidkiPerSecond">Dawidki na sekundę: 0</div>
+  </header>
+  <div class="Miśka">
+    <img src="images-removebg-preview.png" class="Milka" onclick="incrementWynik()">
+  </div>
+  <div class="menu-button" onclick="toggleMenu()">Ulepszenia</div>
+  <div class="menu" id="menu">
+    <h2>Ulepszenia</h2>
+    <div class="upgrade">
+      Kup ulepszenie (+10 Dawidków za klik) - <span id="upgradeCost">500</span> Dawidków
+      <button onclick="buyMultipleUpgrades(10)">Kup 10</button>
+      <button onclick="buyMultipleUpgrades(100)">Kup 100</button>
+      <input type="number" id="customUpgradeCount" placeholder="Ilość" min="1">
+      <button onclick="buyCustomUpgrades()">Kup niestandardową ilość</button>
+    </div>
+    <div class="upgrade">
+      Kup autoclicker (+10 Dawidków na sekundę) - <span id="autoUpgradeCost">1000</span> Dawidków
+      <button onclick="buyMultipleAutoUpgrades(10)">Kup 10</button>
+      <button onclick="buyMultipleAutoUpgrades(100)">Kup 100</button>
+      <input type="number" id="customAutoUpgradeCount" placeholder="Ilość" min="1">
+      <button onclick="buyCustomAutoUpgrades()">Kup niestandardową ilość</button>
+    </div>
+    <audio id="sound1" src="Dawid Jasper  Ryszard bije miśke.mp3"></audio>
+    <audio id="sound2" src="Dawid Jasper - co lubi miśka.mp3"></audio>
+    <audio id="sound3" src="Dawid Jasper - Dawaj to mięsko  Who Let The Dogs Out.mp3"></audio>
+  </div>
+  <script>
+    let wynik = parseInt(localStorage.getItem('wynik')) || 0;
+    let upgradeCount = parseInt(localStorage.getItem('upgradeCount')) || 0;
+    let autoUpgradeCount = parseInt(localStorage.getItem('autoUpgradeCount')) || 0;
+    let upgradeCost = parseInt(localStorage.getItem('upgradeCost')) || 500;
+    let autoUpgradeCost = parseInt(localStorage.getItem('autoUpgradeCost')) || 1000;
+    
+    function updateDisplay() {
+      document.getElementById('wynikDisplay').textContent = 'Dawidki: ' + wynik;
+      document.getElementById('upgradeCost').textContent = upgradeCost;
+      document.getElementById('autoUpgradeCost').textContent = autoUpgradeCost;
+      const dawidkiPerSecond = autoUpgradeCount * 10 + upgradeCount * 10;
+      document.getElementById('dawidkiPerSecond').textContent = 'Dawidki na sekundę: ' + dawidkiPerSecond;
+    }
+    
+    function incrementWynik() {
+      let additionalDawidki = upgradeCount * 10;
+      wynik += 1 + additionalDawidki;
+      localStorage.setItem('wynik', wynik);
+      updateDisplay();
+    }
+    
+    function toggleMenu() {
+      const menu = document.getElementById('menu');
+      menu.classList.toggle('open');
+    }
+    
+    function buyUpgrade() {
+      if (wynik >= upgradeCost) {
+        wynik -= upgradeCost;
+        upgradeCount += 1;
+        upgradeCost += 100;
+        localStorage.setItem('wynik', wynik);
+        localStorage.setItem('upgradeCount', upgradeCount);
+        localStorage.setItem('upgradeCost', upgradeCost);
+        updateDisplay();
+        alert('Ulepszenie zakupione! Teraz zdobywasz ' + (1 + upgradeCount * 10) + ' Dawidków za klik.');
+      } else {
+        alert('Nie masz wystarczająco Dawidków, aby kupić to ulepszenie.');
+      }
+    }
+    
+    function buyAutoUpgrade() {
+      if (wynik >= autoUpgradeCost) {
+        wynik -= autoUpgradeCost;
+        autoUpgradeCount += 1;
+        autoUpgradeCost += 100;
+        localStorage.setItem('wynik', wynik);
+        localStorage.setItem('autoUpgradeCount', autoUpgradeCount);
+        localStorage.setItem('autoUpgradeCost', autoUpgradeCost);
+        updateDisplay();
+        alert('Autoclicker zakupiony! Teraz zdobywasz ' + (autoUpgradeCount * 10) + ' Dawidków na sekundę.');
+      } else {
+        alert('Nie masz wystarczająco Dawidków, aby kupić ten autoclicker.');
+      }
+    }
+    
+    function resetGame() {
+      wynik = 0;
+      upgradeCount = 0;
+      autoUpgradeCount = 0;
+      upgradeCost = 500;
+      autoUpgradeCost = 1000;
+      localStorage.setItem('wynik', wynik);
+      localStorage.setItem('upgradeCount', upgradeCount);
+      localStorage.setItem('autoUpgradeCount', autoUpgradeCount);
+      localStorage.setItem('upgradeCost', upgradeCost);
+      localStorage.setItem('autoUpgradeCost', autoUpgradeCost);
+      updateDisplay();
+      alert('Gra została zresetowana.');
+    }
+    
+    function autoIncrement() {
+      wynik += autoUpgradeCount * 10;
+      localStorage.setItem('wynik', wynik);
+      updateDisplay();
+    }
+    
+    setInterval(autoIncrement, 1000);
+    updateDisplay();
+    
+    function buyMultipleUpgrades(count) {
+      let totalCost = 0;
+      for (let i = 0; i < count; i++) {
+        totalCost += upgradeCost + i * 100;
+      }
+      if (wynik >= totalCost) {
+        wynik -= totalCost;
+        upgradeCount += count;
+        upgradeCost += count * 100;
+        localStorage.setItem('wynik', wynik);
+        localStorage.setItem('upgradeCount', upgradeCount);
+        localStorage.setItem('upgradeCost', upgradeCost);
+        updateDisplay();
+        alert('Zakupiono ' + count + ' ulepszeń! Teraz zdobywasz ' + (1 + upgradeCount * 10) + ' Dawidków za klik.');
+      } else {
+        alert('Nie masz wystarczająco Dawidków, aby kupić ' + count + ' ulepszeń.');
+      }
+    }
+    
+    function buyMultipleAutoUpgrades(count) {
+      let totalCost = 0;
+      for (let i = 0; i < count; i++) {
+        totalCost += autoUpgradeCost + i * 100;
+      }
+      if (wynik >= totalCost) {
+        wynik -= totalCost;
+        autoUpgradeCount += count;
+        autoUpgradeCost += count * 100;
+        localStorage.setItem('wynik', wynik);
+        localStorage.setItem('autoUpgradeCount', autoUpgradeCount);
+        localStorage.setItem('autoUpgradeCost', autoUpgradeCost);
+        updateDisplay();
+        alert('Zakupiono ' + count + ' autoclickerów! Teraz zdobywasz ' + (autoUpgradeCount * 10) + ' Dawidków na sekundę.');
+      } else {
+        alert('Nie masz wystarczająco Dawidków, aby kupić ' + count + ' autoclickerów.');
+      }
+    }
+    
+    function buyCustomUpgrades() {
+      const count = parseInt(document.getElementById('customUpgradeCount').value);
+      if (isNaN(count) || count <= 0) {
+        alert('Podaj prawidłową ilość.');
+        return;
+      }
+      buyMultipleUpgrades(count);
+    }
+    
+    function buyCustomAutoUpgrades() {
+      const count = parseInt(document.getElementById('customAutoUpgradeCount').value);
+      if (isNaN(count) || count <= 0) {
+        alert('Podaj prawidłową ilość.');
+        return;
+      }
+      buyMultipleAutoUpgrades(count);
+    }
+    function playRandomSound() {
+      const sounds = ['sound1', 'sound2', 'sound3'];
+      const randomIndex = Math.floor(Math.random() * sounds.length);
+      const soundElement = document.getElementById(sounds[randomIndex]);
+      soundElement.play();
+    }
+    setInterval(playRandomSound, 30000);
+  </script>
+</body>
+</html>
